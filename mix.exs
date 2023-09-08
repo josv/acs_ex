@@ -37,7 +37,7 @@ defmodule ACS.Mixfile do
 
   defp deps do
     [
-      {:plug_cowboy, "~> 2.5.2"},
+      {:plug_cowboy, "~> 2.6"},
       {:uuid, "~> 1.1.8"},
       {:cwmp_ex, "~> 0.2.7"},
       {:httpoison, "~> 1.8.0"},
@@ -45,7 +45,7 @@ defmodule ACS.Mixfile do
       {:poolboy, "~> 1.5.2"},
       {:gproc, "~> 0.9.0"},
       {:mock, "~> 0.3.7", only: :test},
-      {:prometheus_ex, "~> 3.0.5"},
+      {:prometheus_ex, git: "https://github.com/lanodan/prometheus.ex.git", ref: "fix/elixir-1.14"},
       {:ex_doc, "~> 0.28.3", only: :dev, runtime: false}
     ]
   end
