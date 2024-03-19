@@ -15,6 +15,7 @@ defmodule ACS do
   end
 
   def start_link({ACS.Session.Supervisor, init_args}) do
+    setup_prometheus()
     ACS.Session.Supervisor.start_link(init_args)
   end
 
