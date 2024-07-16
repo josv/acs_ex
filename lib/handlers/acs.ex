@@ -59,7 +59,8 @@ defmodule ACS.Handlers.ACS do
 
                   extended_deviceid =
                     Map.merge(Map.from_struct(didstruct), %{
-                      ip: to_string(:inet_parse.ntoa(conn.remote_ip))
+			  ip: to_string(:inet_parse.ntoa(conn.remote_ip)),
+			  subdomain: Map.get(conn.private, :subdomain)
                     })
 
                   ACS.Session.Supervisor.start_session(
