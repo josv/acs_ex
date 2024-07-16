@@ -247,7 +247,7 @@ defmodule ACS.Session do
 
   def handle_info(:timeout, state) do
     # Kill self...
-    Logger.warn("Session died due to timeout")
+    Logger.warning("Session died due to timeout")
     # Update the Prometheus metrics
     Counter.inc(name: :acs_ex_dead_sessions, labels: [state.device_id.product_class])
     {:stop, :timeout, state}
@@ -715,8 +715,16 @@ defmodule ACS.Session do
               )
 
             "SetParameterValues" ->
+	      {parameter_list, parameter_key}  =
+		case args do
+		  l when is_list(l) ->
+		    {l, nil}
+		  m when is_map(m) ->
+		    {m.parameter_list, Map.get(m, :parameter_key)}
+		end
+	      
               params =
-                for a <- args,
+                for a <- parameter_list,
                     do: %CWMP.Protocol.Messages.ParameterValueStruct{
                       name: a.name,
                       type: a.type,
@@ -725,7 +733,7 @@ defmodule ACS.Session do
 
               CWMP.Protocol.Generator.generate!(
                 header,
-                %CWMP.Protocol.Messages.SetParameterValues{parameters: params},
+                %CWMP.Protocol.Messages.SetParameterValues{parameters: params, parameter_key: parameter_key},
                 cwmp_version
               )
 
@@ -892,15 +900,21 @@ defmodule ACS.Session do
 
       "SetParameterValues" ->
         # args must be list of maps with name,type and value keys
-        case args do
-          l when is_list(l) and length(l) > 0 ->
-            Enum.all?(args, fn a ->
-              Map.has_key?(a, :name) && Map.has_key?(a, :type) && Map.has_key?(a, :value)
-            end)
+	parameter_list =
+          case args do
+            l when is_list(l) and length(l) > 0 ->
+	      l
 
-          _ ->
-            false
-        end
+            m when is_map(m) ->
+	      Map.get(m, :parameter_list, false)
+
+            _ ->
+             false 
+          end
+
+	parameter_list && Enum.all?(parameter_list, fn a ->
+	  Map.has_key?(a, :name) && Map.has_key?(a, :type) && Map.has_key?(a, :value)
+        end)
 
       "GetParameterValues" ->
         # args must be map with name and type key in all elements
